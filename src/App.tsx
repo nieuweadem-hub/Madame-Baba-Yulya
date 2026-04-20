@@ -436,7 +436,7 @@ export default function App() {
             className={`pb-1 cursor-pointer transition-colors ${step === 'collection' ? 'border-b border-yellow-500 text-yellow-500' : 'hover:text-white'}`}
             onClick={goToCollection}
           >
-            Mijn Kaarten
+            Orakel Kaarten
           </span>
           {user ? (
             <span className="cursor-pointer hover:text-white transition-colors flex items-center gap-2 text-yellow-500/80" onClick={logOut}>
