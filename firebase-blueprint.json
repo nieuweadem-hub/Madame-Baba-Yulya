@@ -1,0 +1,22 @@
+{
+  "entities": {
+    "Reading": {
+      "title": "Reading",
+      "description": "A saved tarot reading",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "cardName": { "type": "string" },
+        "readingText": { "type": "string" },
+        "createdAt": { "type": "string", "format": "timestamp" }
+      },
+      "required": ["userId", "cardName", "readingText", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/readings/{readingId}": {
+      "schema": { "$ref": "#/entities/Reading" },
+      "description": "Saved oracle card readings for a user"
+    }
+  }
+}

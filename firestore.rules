@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} { 
+      allow read, write: if false; 
+    }
+
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+    
+    function incoming() { 
+      return request.resource.data; 
+    }
+    
+    function existing() { 
+      return resource.data; 
+    }
+    
+    function isSignedIn() { 
+      return request.auth != null; 
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidReading(data) {
+      return data.keys().hasAll(['userId', 'cardName', 'readingText', 'createdAt']) &&
+             data.keys().size() == 4 &&
+             data.userId == request.auth.uid &&
+             data.cardName is string && data.cardName.size() > 0 && data.cardName.size() <= 100 &&
+             data.readingText is string && data.readingText.size() > 0 && data.readingText.size() <= 5000 &&
+             data.createdAt == request.time;
+    }
+
+    match /users/{userId}/readings/{readingId} {
+      allow get: if isOwner(userId) && existing().userId == request.auth.uid;
+      allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+      allow create: if isOwner(userId) && isValidId(userId) && isValidId(readingId) && isValidReading(incoming());
+      allow update: if false;
+      allow delete: if isOwner(userId) && existing().userId == request.auth.uid;
+    }
+  }
+}
