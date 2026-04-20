@@ -1,7 +1,15 @@
 import { GoogleGenAI } from "@google/genai";
 
-// Initialize the Google Gen AI SDK
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Functie om de AI client veilig op te halen zonder de app te laten crashen bij opstarten
+function getAI() {
+  const apiKey = import.meta.env.VITE_GOOGLE_AI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || '';
+  
+  if (!apiKey || apiKey.trim() === '') {
+    throw new Error("MISSING_API_KEY");
+  }
+  
+  return new GoogleGenAI({ apiKey });
+}
 
 export async function generateReading(userName: string, cardNames: string[], mode: 'single' | 'three'): Promise<string> {
   let prompt = '';
@@ -18,6 +26,7 @@ Schrijf een gepersonaliseerde, inspirerende en mysterieuze reading (max 300 woor
   }
 
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: prompt,
@@ -27,7 +36,10 @@ Schrijf een gepersonaliseerde, inspirerende en mysterieuze reading (max 300 woor
     });
 
     return response.text || "De geesten zijn momenteel stil... Probeer het later nog eens.";
-  } catch (error) {
+  } catch (error: any) {
+    if (error.message === "MISSING_API_KEY") {
+      return "De kosmische verbinding is verbroken. Er is geen API Key ingesteld. Voeg de VITE_GOOGLE_AI_API_KEY toe in de environment variabelen/Netlify settings om inzichten te openbaren.";
+    }
     console.error("Fout bij het ophalen van de lezing:", error);
     throw new Error("Madame Baba Yulya kon helaas geen verbinding maken met de andere kant.");
   }
@@ -35,6 +47,7 @@ Schrijf een gepersonaliseerde, inspirerende en mysterieuze reading (max 300 woor
 
 export async function generateSpeech(text: string): Promise<string | null> {
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-3.1-flash-tts-preview",
       contents: [{ parts: [{ text: `Spreek rustig, mystiek, en warm uit in het Nederlands: ${text}` }] }],
@@ -51,6 +64,9 @@ export async function generateSpeech(text: string): Promise<string | null> {
     const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
     return base64Audio || null;
   } catch (error: any) {
+    if (error.message === "MISSING_API_KEY") {
+       return null; // Skip TTS gracefully if key is missing
+    }
     if (error?.status === 429 || error?.message?.includes("RESOURCE_EXHAUSTED")) {
       console.warn("API Limiet bereikt (429) voor TTS. Er wordt geen audio afgespeeld.");
     } else {
@@ -161,6 +177,7 @@ Geef een diepgaande interpretatie die specifieke, praktische sturing biedt. Gebr
 Toon: Warm, inzichtelijk, en mystiek. Totaal maximaal 250 woorden.`;
 
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: prompt,
@@ -170,7 +187,10 @@ Toon: Warm, inzichtelijk, en mystiek. Totaal maximaal 250 woorden.`;
     });
 
     return response.text || "De ether is momenteel stil... Probeer het later nog eens.";
-  } catch (error) {
+  } catch (error: any) {
+    if (error.message === "MISSING_API_KEY") {
+      return "**🔮 Diepere Duiding**\nEr ontbreekt momenteel een API Key in de Netlify configuratie (VITE_GOOGLE_AI_API_KEY). De archieven blijven daarom even gesloten.\n\n**❤️ Liefde & Relaties**\nOnbekend...\n\n**💼 Carrière & Levenspad**\nOnbekend...";
+    }
     console.error("Fout bij het ophalen van de diepe lezing:", error);
     throw new Error("Madame Baba Yulya kon de verborgen archieven niet openen.");
   }
@@ -180,6 +200,7 @@ export async function generateCardImage(cardName: string): Promise<string> {
   const promptText = `A beautiful, highly detailed, 3D-style, Realistic, ethereal and magical oracle tarot card illustration centered on the concept of: ${cardName}. Glowing aura, dark purple and gold color palette, fantasy gothic style, masterpiece, 4k resolution, symmetrical portrait layout.`;
 
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: {
