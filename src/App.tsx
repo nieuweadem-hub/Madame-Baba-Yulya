@@ -9,36 +9,62 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 
 // --- Background Component ---
 const StarsBackground = () => {
-  const [stars, setStars] = useState<{ id: number; left: string; top: string; size: string; duration: string; opacity: number }[]>([]);
+  const [particles, setParticles] = useState<{ 
+    id: number; 
+    left: string; 
+    top: string; 
+    size: string; 
+    pulseDuration: string; 
+    floatDuration: string;
+    opacity: number; 
+    tx: number; 
+    ty: number;
+    colorClass: string;
+  }[]>([]);
 
   useEffect(() => {
-    const newStars = Array.from({ length: 50 }).map((_, i) => ({
+    const colors = ['bg-yellow-100', 'bg-yellow-300', 'bg-purple-300', 'bg-indigo-300', 'bg-white'];
+    
+    const newParticles = Array.from({ length: 80 }).map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}vw`,
       top: `${Math.random() * 100}vh`,
-      size: `${Math.random() * 2 + 1}px`,
-      duration: `${Math.random() * 3 + 2}s`,
-      opacity: Math.random() * 0.5 + 0.3,
+      size: `${Math.random() * 3 + 1}px`,
+      pulseDuration: `${Math.random() * 3 + 2}s`,
+      floatDuration: `${Math.random() * 40 + 40}s`, // slow, dreamy float
+      opacity: Math.random() * 0.6 + 0.1,
+      tx: (Math.random() - 0.5) * 300, // drift sideways
+      ty: (Math.random() - 1) * 400, // drift mostly upwards
+      colorClass: colors[Math.floor(Math.random() * colors.length)]
     }));
-    setStars(newStars);
+    setParticles(newParticles);
   }, []);
 
   return (
-    <div className="stars">
-      {stars.map((star) => (
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden mix-blend-screen opacity-60">
+      {particles.map((p) => (
         <div
-          key={star.id}
-          className="star"
+          key={p.id}
+          className={`absolute rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)] ${p.colorClass}`}
           style={{
-            left: star.left,
-            top: star.top,
-            width: star.size,
-            height: star.size,
-            '--twinkle-duration': star.duration,
-            '--max-opacity': star.opacity,
+            left: p.left,
+            top: p.top,
+            width: p.size,
+            height: p.size,
+            '--max-opacity': p.opacity,
+            '--tx': `${p.tx}px`,
+            '--ty': `${p.ty}px`,
+            animation: `
+              pulse-particle ${p.pulseDuration} ease-in-out infinite alternate,
+              float-particle ${p.floatDuration} linear infinite
+            `
           } as React.CSSProperties}
         />
       ))}
+      
+      {/* Some larger blurred energetic orbs */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-900/10 rounded-full blur-[100px] animate-[float_15s_ease-in-out_infinite]"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-yellow-900/10 rounded-full blur-[100px] animate-[float_20s_ease-in-out_infinite_reverse]"></div>
     </div>
   );
 };

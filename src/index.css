@@ -61,6 +61,16 @@ body {
   100% { opacity: var(--max-opacity, 0.8); transform: scale(1); box-shadow: 0 0 8px rgba(255, 215, 0, 0.6); }
 }
 
+@keyframes float-particle {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(var(--tx), var(--ty)); }
+}
+
+@keyframes pulse-particle {
+  0% { opacity: 0.1; transform: scale(0.8); }
+  100% { opacity: var(--max-opacity, 0.8); transform: scale(1.2); }
+}
+
 .card-container {
   perspective: 1000px;
 }
