@@ -197,6 +197,8 @@ export default function App() {
   };
 
   const drawCard = async () => {
+    stopAudio();
+    setIsPlayingAudio(false);
     setFlippedCardIndex(null);
     let selectedCards: string[] = [];
     if (readingMode === 'single') {
@@ -428,7 +430,7 @@ export default function App() {
         <div className="hidden md:flex gap-8 text-[11px] uppercase tracking-widest text-[#e0d7f2]/50 font-sans">
           <span 
             className={`pb-1 cursor-pointer transition-colors ${step !== 'collection' && step !== 'onboarding' ? 'border-b border-yellow-500 text-yellow-500' : 'hover:text-white'}`}
-            onClick={() => userName ? setStep('deck') : setStep('onboarding')}
+            onClick={() => { stopAudio(); setIsPlayingAudio(false); userName ? setStep('deck') : setStep('onboarding'); }}
           >
             De Reading
           </span>
@@ -532,7 +534,7 @@ export default function App() {
                       Welkom {userName}. Voel je een specifieke vraag branden, of zoek je algemene sturing?
                     </p>
                     <button 
-                      onClick={(e) => { e.preventDefault(); setReadingMode('single'); setStep('deck'); }} 
+                      onClick={(e) => { e.preventDefault(); stopAudio(); setIsPlayingAudio(false); setReadingMode('single'); setStep('deck'); }} 
                       className="px-6 py-5 border border-yellow-500/30 hover:border-yellow-500 hover:bg-yellow-500/10 text-white font-serif rounded-xl flex items-center justify-between transition-all group"
                     >
                       <div className="text-left">
@@ -542,7 +544,7 @@ export default function App() {
                       <Star size={24} className="text-yellow-500/50 group-hover:text-yellow-500 group-hover:scale-110 transition-all flex-shrink-0" />
                     </button>
                     <button 
-                      onClick={(e) => { e.preventDefault(); setReadingMode('three'); setStep('deck'); }} 
+                      onClick={(e) => { e.preventDefault(); stopAudio(); setIsPlayingAudio(false); setReadingMode('three'); setStep('deck'); }} 
                       className="px-6 py-5 border border-yellow-500/30 hover:border-yellow-500 hover:bg-yellow-500/10 text-white font-serif rounded-xl flex items-center justify-between transition-all group"
                     >
                       <div className="text-left">

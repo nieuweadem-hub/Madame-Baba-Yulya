@@ -50,7 +50,7 @@ export async function generateSpeech(text: string): Promise<string | null> {
     const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-3.1-flash-tts-preview",
-      contents: [{ parts: [{ text: `Spreek rustig, mystiek, en warm uit in het Nederlands: ${text}` }] }],
+      contents: [{ parts: [{ text: `Spreek vlot, mystiek, en warm uit in het Nederlands: ${text}` }] }],
       config: {
         responseModalities: ['AUDIO'],
         speechConfig: {
@@ -142,6 +142,7 @@ export async function playPCM(base64Audio: string, onEnded?: () => void) {
     
     const source = globalAudioContext.createBufferSource();
     source.buffer = audioBuffer;
+    source.playbackRate.value = 1.15; // Speed up the audio slightly
     source.connect(globalAudioContext.destination);
 
     source.onended = () => {
