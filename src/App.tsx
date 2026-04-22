@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, Moon, Star, RefreshCw, LogIn, LogOut, Bookmark, Archive, Volume2, VolumeX, Loader2 } from 'lucide-react';
 import { getRandomCard, ORACLE_CARDS, CARD_MEANINGS } from './lib/cards';
 import { generateReading, generateCardImage, generateDeepCardMeaning, generateSpeech, playPCM, initAudio, stopAudio, playTTSStream } from './services/ai';
+import { playClickSound, playDrawCardSound, playLoadingSound } from './services/soundEffects';
 import { MysticLoader } from './components/MysticLoader';
 import { auth, signInWithGoogle, logOut, saveReadingToArchive, getSavedReadings } from './services/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
@@ -89,6 +90,18 @@ export default function App() {
   const [welcomeAudioData, setWelcomeAudioData] = useState<string | null>(null);
   const [hoverAudioData, setHoverAudioData] = useState<string | null>(null);
   const [hasPlayedHoverAudio, setHasPlayedHoverAudio] = useState(false);
+  const stopLoadingSoundRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    if (isLoading) {
+      stopLoadingSoundRef.current = playLoadingSound();
+    } else {
+      if (stopLoadingSoundRef.current) {
+        stopLoadingSoundRef.current();
+        stopLoadingSoundRef.current = null;
+      }
+    }
+  }, [isLoading]);
 
   const WELCOME_MSG = "De kaarten hebben geen voorkeur voor je geluk of je verdriet, ze kennen alleen de waarheid. Welkom zoeker. Het universum heeft speciaal voor jou een boodschap. Vertel me je naam, zodat we de verbinding kunnen maken.";
   const HOVER_MSG = "Start de sessie.";
@@ -149,6 +162,7 @@ export default function App() {
   };
 
   const handleSaveReading = async () => {
+    playClickSound();
     if (!user) {
       await handleLogin();
       // Returns right after login attempt. Will need them to click save again.
@@ -179,6 +193,7 @@ export default function App() {
 
   const handleStart = async (e: React.FormEvent) => {
     e.preventDefault();
+    playClickSound();
     initAudio();
     if (userName.trim().length > 0) {
       setOnboardingPhase(2);
@@ -187,6 +202,7 @@ export default function App() {
   };
 
   const startSession = async () => {
+    playClickSound();
     initAudio();
     setOnboardingPhase(1);
     if (welcomeAudioData) {
@@ -217,6 +233,7 @@ export default function App() {
     setIsLoading(true);
     setReading('');
     setImageUrls([]);
+    playDrawCardSound();
 
     try {
       setLoadingText('De geesten raadplegen...');
@@ -236,6 +253,7 @@ export default function App() {
   };
 
   const reset = () => {
+    playClickSound();
     stopAudio();
     setIsPlayingAudio(false);
     setStep('deck');
@@ -245,6 +263,7 @@ export default function App() {
   };
 
   const goHome = () => {
+    playClickSound();
     stopAudio();
     setIsPlayingAudio(false);
     setStep('onboarding');
@@ -256,6 +275,7 @@ export default function App() {
   };
 
   const goToCollection = () => {
+    playClickSound();
     stopAudio();
     setIsPlayingAudio(false);
     setStep('collection');
@@ -263,6 +283,7 @@ export default function App() {
   };
 
   const goToCardInCollection = async () => {
+    playClickSound();
     stopAudio();
     setIsPlayingAudio(false);
     setStep('collection');
@@ -283,6 +304,7 @@ export default function App() {
   };
 
   const handleExpandCard = async (card: string) => {
+    playClickSound();
     if (expandedCards[card] || loadingCards[card]) return;
     
     setLoadingCards(prev => ({ ...prev, [card]: true }));
@@ -305,6 +327,7 @@ export default function App() {
   };
 
   const handleToggleAudio = async () => {
+    playClickSound();
     if (isPlayingAudio || isAudioLoading) {
       stopAudio();
       setIsPlayingAudio(false);
@@ -430,7 +453,7 @@ export default function App() {
         <div className="hidden md:flex gap-8 text-[11px] uppercase tracking-widest text-[#e0d7f2]/50 font-sans">
           <span 
             className={`pb-1 cursor-pointer transition-colors ${step !== 'collection' && step !== 'onboarding' ? 'border-b border-yellow-500 text-yellow-500' : 'hover:text-white'}`}
-            onClick={() => { stopAudio(); setIsPlayingAudio(false); userName ? setStep('deck') : setStep('onboarding'); }}
+            onClick={() => { playClickSound(); stopAudio(); setIsPlayingAudio(false); userName ? setStep('deck') : setStep('onboarding'); }}
           >
             De Reading
           </span>
@@ -534,7 +557,7 @@ export default function App() {
                       Welkom {userName}. Voel je een specifieke vraag branden, of zoek je algemene sturing?
                     </p>
                     <button 
-                      onClick={(e) => { e.preventDefault(); stopAudio(); setIsPlayingAudio(false); setReadingMode('single'); setStep('deck'); }} 
+                      onClick={(e) => { e.preventDefault(); playClickSound(); stopAudio(); setIsPlayingAudio(false); setReadingMode('single'); setStep('deck'); }} 
                       className="px-6 py-5 border border-yellow-500/30 hover:border-yellow-500 hover:bg-yellow-500/10 text-white font-serif rounded-xl flex items-center justify-between transition-all group"
                     >
                       <div className="text-left">
@@ -544,7 +567,7 @@ export default function App() {
                       <Star size={24} className="text-yellow-500/50 group-hover:text-yellow-500 group-hover:scale-110 transition-all flex-shrink-0" />
                     </button>
                     <button 
-                      onClick={(e) => { e.preventDefault(); stopAudio(); setIsPlayingAudio(false); setReadingMode('three'); setStep('deck'); }} 
+                      onClick={(e) => { e.preventDefault(); playClickSound(); stopAudio(); setIsPlayingAudio(false); setReadingMode('three'); setStep('deck'); }} 
                       className="px-6 py-5 border border-yellow-500/30 hover:border-yellow-500 hover:bg-yellow-500/10 text-white font-serif rounded-xl flex items-center justify-between transition-all group"
                     >
                       <div className="text-left">
@@ -578,7 +601,7 @@ export default function App() {
                 </h1>
                 
                 <button 
-                  onClick={drawCard}
+                  onClick={() => { playDrawCardSound(); drawCard(); }}
                   className="relative group animate-float cursor-pointer perspective-[1000px]"
                 >
                   {/* Glowing aura */}
@@ -629,6 +652,7 @@ export default function App() {
                         className={`card-inner w-full relative aspect-[2/3] ${readingMode === 'three' && !isLoading ? 'cursor-pointer hover:scale-105 transition-transform group' : ''}`}
                         onClick={() => {
                           if (!isLoading && readingMode === 'three') {
+                            playClickSound();
                             setFlippedCardIndex(idx);
                           }
                         }}

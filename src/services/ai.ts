@@ -90,6 +90,10 @@ export function stopAudio() {
   }
 }
 
+export function getAudioContext(): AudioContext | null {
+  return globalAudioContext;
+}
+
 export function initAudio() {
   if (!globalAudioContext) {
     globalAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
