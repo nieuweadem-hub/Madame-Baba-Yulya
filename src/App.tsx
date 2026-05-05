@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Moon, Star, RefreshCw, LogIn, LogOut, Bookmark, Archive, Volume2, VolumeX, Loader2 } from 'lucide-react';
+import { Sparkles, Moon, Star, RefreshCw, LogIn, LogOut, Bookmark, Archive, Volume2, VolumeX, Loader2, Share2, Check } from 'lucide-react';
 import { getRandomCard, ORACLE_CARDS, CARD_MEANINGS } from './lib/cards';
 import { generateReading, generateCardImage, generateDeepCardMeaning, generateSpeech, playPCM, initAudio, stopAudio, playTTSStream } from './services/ai';
 import { playClickSound, playDrawCardSound, playLoadingSound } from './services/soundEffects';
@@ -125,6 +125,7 @@ export default function App() {
   const [authReady, setAuthReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [shareSuccess, setShareSuccess] = useState(false);
   const [savedReadings, setSavedReadings] = useState<any[]>([]);
 
   useEffect(() => {
@@ -157,6 +158,34 @@ export default function App() {
     } catch (err: any) {
       if (err?.code !== 'auth/popup-closed-by-user') {
         console.error("Login faalde", err);
+      }
+    }
+  };
+
+  const handleShareReading = async () => {
+    playClickSound();
+    const shareData = {
+      title: 'Mijn Orakelkaarten Reading by Madame Baba Yulya',
+      text: `Ik trok ${drawnCards.join(" • ")} met Madame Baba Yulya:\n\n${reading}\n\nOntdek zelf de boodschap van het Universum!`,
+      url: window.location.href
+    };
+
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+        setShareSuccess(true);
+        setTimeout(() => setShareSuccess(false), 3000);
+      } catch (err) {
+        console.error("Fout bij delen", err);
+      }
+    } else {
+      // Fallback: Copy to clipboard
+      try {
+        await navigator.clipboard.writeText(`${shareData.title}\n\n${shareData.text}\n\n${shareData.url}`);
+        setShareSuccess(true);
+        setTimeout(() => setShareSuccess(false), 3000);
+      } catch (err) {
+        console.error("Fout bij kopiëren", err);
       }
     }
   };
@@ -761,6 +790,14 @@ export default function App() {
                         >
                           <Archive size={16} className={saveSuccess ? "text-green-400" : ""} />
                           {isSaving ? 'Bezig met opslaan...' : saveSuccess ? 'Archief!' : 'Bewaar Boodschap'}
+                        </button>
+                        <button 
+                          onClick={handleShareReading}
+                          disabled={shareSuccess}
+                          className={`px-6 py-4 border hover:bg-white/5 font-sans uppercase tracking-widest text-xs rounded-full transition-all flex items-center justify-center gap-3 ${shareSuccess ? 'border-blue-500 text-blue-400' : 'border-white/20 text-white/80'}`}
+                        >
+                          {shareSuccess ? <Check size={16} className="text-blue-400" /> : <Share2 size={16} />}
+                          {shareSuccess ? 'Gekopieerd / Gedeeld!' : 'Deel Reading'}
                         </button>
                       </div>
                     </motion.div>

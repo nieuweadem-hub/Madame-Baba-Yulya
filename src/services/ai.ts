@@ -239,8 +239,10 @@ export async function generateCardImage(cardName: string): Promise<string> {
       throw new Error("No image was returned.");
     }
   } catch (error) {
-    console.error("Fout bij het genereren van de afbeelding:", error);
-    // Fallback if image generation fails
-    return `https://picsum.photos/seed/${encodeURIComponent(cardName)}/600/800/?blur=4`;
+    console.warn("Fout of limiet bij het genereren van afbeelding (429). Overschakelen op gratis AI Fallback...", error);
+    // Fallback: Pollinations.ai (Free, unlimited AI image generator)
+    const fallbackPrompt = `Tarot card art, highly detailed, magical, oracle, concept: ${cardName}, dark purple and gold color palette, fantasy style.`;
+    const seed = Math.floor(Math.random() * 100000);
+    return `https://image.pollinations.ai/prompt/${encodeURIComponent(fallbackPrompt)}?width=600&height=800&nologo=true&seed=${seed}`;
   }
 }
